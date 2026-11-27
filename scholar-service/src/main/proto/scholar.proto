@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package com.scholarx;
+
+option java_multiple_files = true;
+option java_package = "com.scholarx.grpc";
+option java_outer_classname = "ScholarProto";
+
+service ScholarGrpcService {
+  rpc GetScholarProfile (ScholarRequest) returns (ScholarResponse);
+}
+
+message ScholarRequest {
+  string scholar_id = 1;
+}
+
+message ScholarResponse {
+  string scholar_id = 1;
+  string name = 2;
+  string email = 3;
+  string target_role = 4;
+  string conversion_deadline = 5;
+}
