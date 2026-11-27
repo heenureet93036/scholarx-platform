@@ -78,9 +78,40 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
   - `scholarx/notification-service:1.0.0`
 - [ ] Use same tags in Kubernetes manifests (no `latest`)
 
-### Before vs After Docker (document in report)
-- [ ] List manual steps without Docker + estimated time (~25 steps, ~45 min)
-- [ ] Show one-command Docker startup + measured time (~3 min)
+### Docker Compose
+- [ ] `docker compose up --build` starts everything: services, PostgreSQL, Kafka, Zookeeper, Ollama
+- [ ] Health-based start order (postgres → kafka → services)
+- [ ] Named volumes: `postgres-data`, `ollama-data`
+- [ ] Shared bridge network: `scholarx-network`
+- [ ] `.env.example` file with all required env vars
+
+### Before vs After Docker (document in report with actual data)
+- [ ] List manual steps without Docker:
+  1. Install Java 21
+  2. Install Maven
+  3. Install PostgreSQL + create DB + create user
+  4. Install Zookeeper
+  5. Install Kafka + configure broker
+  6. Install Ollama
+  7. Pull Llama3 model (4GB download)
+  8. Set environment variables manually
+  9. Start Zookeeper
+  10. Start Kafka
+  11. Start PostgreSQL
+  12. Start Ollama
+  13. Build scholar-service (`mvn package`)
+  14. Run scholar-service JAR
+  15. Build ai-review-service (`mvn package`)
+  16. Run ai-review-service JAR
+  17. Build gap-service (`mvn package`)
+  18. Run gap-service JAR
+  19. Build notification-service (`mvn package`)
+  20. Run notification-service JAR
+  21. Configure NGINX manually
+  22. Verify all services healthy
+  - **Estimated time: ~45 minutes**
+- [ ] Measure actual Docker startup time: `time docker compose up --build`
+  - **Target: ~3 minutes**
 
 ---
 
@@ -119,6 +150,8 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] Delete `scholar-service` pod: `kubectl delete pod <name>`
 - [ ] Show replacement pod starting automatically (~15s)
 - [ ] Screenshot evidence (command visible)
+- [ ] Include this 4-line explanation in report:
+  > "When a pod is deleted, the Deployment's ReplicaSet detects that the actual replica count (1) is less than the desired count (2). It immediately schedules a new pod on an available node. The readiness probe ensures traffic is only routed to the new pod after it passes health checks. This happens automatically with zero manual intervention — demonstrating Kubernetes self-healing."
 
 ---
 
