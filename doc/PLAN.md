@@ -6,11 +6,20 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 
 ---
 
+## How to use this plan
+
+After completing each task, go to `REPORT.md` and update the linked section before moving to the next task.
+Each task below shows → **REPORT.md § section** so you know exactly where to go.
+
+---
+
 ## Core Principle (4-line write-up for report)
 - **Principle:** Event-Driven Architecture (Loose Coupling via Kafka)
 - **Why it matters:** Resume parsing and gap analysis are compute-heavy; decoupling them means a slow AI step never blocks the scholar's experience
 - **Where implemented:** Kafka events connect all 4 services — `resume.uploaded` → `skills.extracted` → `gap.report.ready`
 - **How demonstrated:** Kill any downstream service; upstream continues working; events replay automatically on restart
+
+> ✅ Done? → Update **REPORT.md § 2. Core Principle**
 
 ---
 
@@ -19,6 +28,8 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] Create Dockerfile per service (with justified base image — see Phase 3)
 - [ ] Set up shared PostgreSQL schema
 - [ ] Verify `docker compose up --build` runs all services
+
+> ✅ Done? → Update **REPORT.md § 5. Docker → Docker Compose** (confirm one-command startup works)
 
 ---
 
@@ -33,6 +44,8 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] gRPC server endpoint — expose `SkillExtractService` for sync skill extraction (used by gap-service for immediate queries)
 - [ ] `GET /actuator/health/liveness` + `/actuator/health/readiness`
 
+> ✅ Done? → Update **REPORT.md § 3. Architecture → Service Table** (fill scholar-service row with actual endpoints)
+
 ### ai-review-service
 - [ ] Kafka consumer — listens to `resume.uploaded`
 - [ ] Extract text from PDF using Apache PDFBox
@@ -40,6 +53,8 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] Save extracted skills to PostgreSQL
 - [ ] Publish Kafka event `skills.extracted`
 - [ ] `GET /actuator/health`
+
+> ✅ Done? → Update **REPORT.md § 3. Architecture → Service Table** (fill ai-review-service row) + **§ 4. ADR 2** (Ollama justification with actual model used)
 
 ### gap-service
 - [ ] Kafka consumer — listens to `skills.extracted`
@@ -52,12 +67,16 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] Resilience4j circuit breaker on gRPC call to scholar-service (threshold=3, timeout=30s, reset=30s)
 - [ ] `GET /actuator/health`
 
+> ✅ Done? → Update **REPORT.md § 3. Architecture → Communication Table** (gRPC row) + **§ 7. Failure Demo (a)** (circuit breaker config)
+
 ### notification-service
 - [ ] Kafka consumer — listens to `gap.report.ready`
 - [ ] Send email to scholar with gap report + learning path (SMTP)
 - [ ] Send manager alert email
 - [ ] Save notification log to PostgreSQL
 - [ ] `GET /actuator/health`
+
+> ✅ Done? → Update **REPORT.md § 3. Architecture → Service Table** (fill notification-service row)
 
 ---
 
@@ -69,6 +88,8 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] `gap-service/Dockerfile` — justify base image
 - [ ] `notification-service/Dockerfile` — justify base image
 
+> ✅ Done? → Update **REPORT.md § 5. Docker → Dockerfiles** (paste base image justification for each service)
+
 ### Docker Hub
 - [ ] Create Docker Hub repo `scholarx/scholar-service`
 - [ ] Push all images with version tag `1.0.0`
@@ -78,12 +99,16 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
   - `scholarx/notification-service:1.0.0`
 - [ ] Use same tags in Kubernetes manifests (no `latest`)
 
+> ✅ Done? → Update **REPORT.md § 5. Docker → Docker Hub Registry** (add actual Docker Hub URLs)
+
 ### Docker Compose
 - [ ] `docker compose up --build` starts everything: services, PostgreSQL, Kafka, Zookeeper, Ollama
 - [ ] Health-based start order (postgres → kafka → services)
 - [ ] Named volumes: `postgres-data`, `ollama-data`
 - [ ] Shared bridge network: `scholarx-network`
 - [ ] `.env.example` file with all required env vars
+
+> ✅ Done? → Update **REPORT.md § 5. Docker → Docker Compose** (confirm features, paste snippet if needed)
 
 ### Before vs After Docker (document in report with actual data)
 - [ ] List manual steps without Docker:
@@ -113,6 +138,8 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] Measure actual Docker startup time: `time docker compose up --build`
   - **Target: ~3 minutes**
 
+> ✅ Done? → Update **REPORT.md § 5. Docker → Before vs After Docker** (fill in measured Docker time)
+
 ---
 
 ## Phase 4 — Kubernetes
@@ -128,11 +155,15 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] `PersistentVolumeClaim` for PostgreSQL
 - [ ] Explicit image tags from Docker Hub: `scholarx/scholar-service:1.0.0`
 
+> ✅ Done? → Update **REPORT.md § 6. Kubernetes Deployment** (fill key configuration table, add kubectl screenshot)
+
 ### Architectural Components
 - [ ] **API Gateway** — NGINX Ingress: single entry point routing all traffic to services
 - [ ] **Service Registry** — Kubernetes DNS: services discover each other by name, not hardcoded IP
 - [ ] **Message Queue** — Apache Kafka: `resume.uploaded`, `skills.extracted`, `gap.report.ready` events
 - [ ] **Circuit Breaker** — Resilience4j on gap-service gRPC call
+
+> ✅ Done? → Update **REPORT.md § 3. Architecture → Architectural Components** (confirm all 4 are working)
 
 ---
 
@@ -145,6 +176,8 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] Restart scholar-service → breaker closes after 30s reset → auto-recovery
 - [ ] Screenshot evidence (command visible)
 
+> ✅ Done? → Update **REPORT.md § 7. Failure Demo (a)** (insert screenshots for each step)
+
 ### (b) Kubernetes Self-Healing
 - [ ] Run `kubectl get pods -w`
 - [ ] Delete `scholar-service` pod: `kubectl delete pod <name>`
@@ -153,6 +186,8 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] Include this 4-line explanation in report:
   > "When a pod is deleted, the Deployment's ReplicaSet detects that the actual replica count (1) is less than the desired count (2). It immediately schedules a new pod on an available node. The readiness probe ensures traffic is only routed to the new pod after it passes health checks. This happens automatically with zero manual intervention — demonstrating Kubernetes self-healing."
 
+> ✅ Done? → Update **REPORT.md § 7. Failure Demo (b)** (insert kubectl get pods -w screenshot)
+
 ---
 
 ## Phase 6 — Report & Demo
@@ -160,19 +195,21 @@ Scholars upload their resume, select a target role, and get an AI-generated skil
 - [ ] Architecture diagram (draw.io or similar)
 - [ ] Core principle 4-line write-up (see top of this file)
 - [ ] Project report (10–12 pages):
-  - Domain & objectives
-  - Core principle
-  - Architecture diagram + service table + communication table
-  - **3 Architecture Decision Records (ADRs):**
+  - Domain & objectives → **REPORT.md § 1**
+  - Core principle → **REPORT.md § 2**
+  - Architecture diagram + service table + communication table → **REPORT.md § 3**
+  - **3 Architecture Decision Records (ADRs):** → **REPORT.md § 4**
     - ADR 1: Kafka for async inter-service communication
     - ADR 2: Ollama/Llama3 for local AI (no API key, no cost, works offline)
     - ADR 3: PostgreSQL for all services (single DB type, simpler setup)
-  - Docker section: Dockerfiles + Compose + registry + before/after table
-  - Kubernetes section
-  - Failure demo evidence
-  - Conclusion
+  - Docker section → **REPORT.md § 5**
+  - Kubernetes section → **REPORT.md § 6**
+  - Failure demo evidence → **REPORT.md § 7**
+  - Conclusion → **REPORT.md § 8**
 - [ ] README with exact run steps
 - [ ] Live demo: upload resume → skills extracted → gap report → email sent
+
+> ✅ Done? → Final check — read through REPORT.md top to bottom and ensure no `[Insert screenshot]` placeholders remain
 
 ---
 
