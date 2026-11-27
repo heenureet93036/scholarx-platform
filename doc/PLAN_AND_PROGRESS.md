@@ -1,4 +1,4 @@
-# ScholarX — Implementation Plan
+# ScholarX — Plan & Progress
 
 ## Overview
 ScholarX is an AI-powered scholar-to-full-time conversion tracker built as a microservices application.
@@ -23,9 +23,9 @@ Each task below shows → **REPORT.md § section** so you know exactly where to 
 
 ---
 
-## Phase 1 — Foundation (All members)
-- [ ] Create Spring Boot main application class per service
-- [ ] Create Dockerfile per service (with justified base image — see Phase 3)
+## Phase 1 — Foundation ✅ DONE
+- [x] Create Spring Boot main application class per service
+- [x] Create Dockerfile per service (`eclipse-temurin:21-jre-alpine`)
 - [ ] Set up shared PostgreSQL schema
 - [ ] Verify `docker compose up --build` runs all services
 
@@ -35,13 +35,13 @@ Each task below shows → **REPORT.md § section** so you know exactly where to 
 
 ## Phase 2 — Core Services
 
-### scholar-service
-- [ ] `Scholar` entity + PostgreSQL table
-- [ ] `POST /api/scholars` — register scholar
-- [ ] `POST /api/scholars/{id}/upload` — upload resume PDF
-- [ ] `POST /api/scholars/{id}/target-role` — select target role
-- [ ] Publish Kafka event `resume.uploaded` after successful upload
-- [ ] gRPC server endpoint — expose `SkillExtractService` for sync skill extraction (used by gap-service for immediate queries)
+### scholar-service ✅ DONE
+- [x] `Scholar` entity + PostgreSQL table
+- [x] `POST /api/scholars` — register scholar
+- [x] `POST /api/scholars/{id}/upload` — upload resume PDF
+- [x] `POST /api/scholars/{id}/target-role` — select target role
+- [x] Publish Kafka event `resume.uploaded` after successful upload
+- [x] gRPC server endpoint — expose `GetScholarProfile` (used by gap-service)
 - [ ] `GET /actuator/health/liveness` + `/actuator/health/readiness`
 
 > ✅ Done? → Update **REPORT.md § 3. Architecture → Service Table** (fill scholar-service row with actual endpoints)
