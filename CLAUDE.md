@@ -18,7 +18,7 @@ This file gives full project context for AI-assisted development.
 
 | Name | ID | Service |
 |---|---|---|
-| HeenuReet | 2025SL93036 HS | scholar-service, gap-service |
+| HeenuReet | 2025SL93036 | scholar-service, gap-service |
 | Mehwish Sultana | I578361 | ai-review-service (Ollama/LLM) |
 | HS Prajwal Bhardwaj | 2025SL93074 | notification-service |
 

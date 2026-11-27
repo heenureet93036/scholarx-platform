@@ -8,7 +8,7 @@
 
 | Name | ID |
 |---|---|
-| HeenuReet | 2025SL93036 HS |
+| HeenuReet | 2025SL93036 |
 | HS Prajwal Bhardwaj | 2025SL93074 |
 | Mehwish Sultana | I578361 |
 

@@ -1,0 +1,5 @@
+
+In the main assignment  the communication part covers REST/ gRPC and message queues. 
+Services must communicate with each other — justify your choice of synchronous (REST / gRPC) or asynchronous (message queue) communication for each interaction.
+
+I suggest including all forms of communication in your assignment
