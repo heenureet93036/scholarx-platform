@@ -48,7 +48,18 @@ scholarx-platform/
 
 ---
 
-## Run Locally
+## Documentation
+
+| File | Purpose |
+|---|---|
+| [`CLAUDE.md`](./CLAUDE.md) | Full project context — team, services, architecture, tech stack, decisions |
+| [`doc/PLAN.md`](./doc/PLAN.md) | Implementation checklist — phases, tasks, routing to report sections |
+| [`doc/REPORT.md`](./doc/REPORT.md) | Assignment report template — pre-filled, insert screenshots to complete |
+| [`doc/assignment2_summary.md`](./doc/assignment2_summary.md) | Assignment requirements summary with instructor notes |
+
+---
+
+
 
 ```bash
 cp .env.example .env
