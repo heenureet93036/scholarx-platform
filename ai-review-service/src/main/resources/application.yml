@@ -25,6 +25,11 @@ spring:
 server:
   port: 8082
 
+hyperspace:
+  base-url: ${HYPERSPACE_URL:http://localhost:6655/litellm/v1}
+  api-key: ${HYPERSPACE_API_KEY:}
+  model: ${HYPERSPACE_MODEL:claude-sonnet-4-6}
+
 ollama:
   base-url: ${OLLAMA_URL:http://localhost:11434}
   model: llama3

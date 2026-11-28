@@ -7,6 +7,9 @@ import com.scholarx.aireview.repository.ExtractedSkillRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +30,15 @@ public class AiReviewService {
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
+    @Value("${hyperspace.base-url:#{null}}")
+    private String hyperspaceBaseUrl;
+
+    @Value("${hyperspace.api-key:#{null}}")
+    private String hyperspaceApiKey;
+
+    @Value("${hyperspace.model:claude-sonnet-4-6}")
+    private String hyperspaceModel;
+
     @Value("${ollama.base-url}")
     private String ollamaBaseUrl;
 
@@ -36,7 +49,7 @@ public class AiReviewService {
         log.info("Processing resume for scholar: {}", scholarId);
 
         String prompt = buildPrompt(resumeText);
-        String jsonResponse = callOllama(prompt);
+        String jsonResponse = callAi(prompt);
         List<ExtractedSkill> skills = parseSkills(scholarId, jsonResponse);
 
         skillRepository.saveAll(skills);
@@ -44,7 +57,7 @@ public class AiReviewService {
 
         List<String> skillNames = skills.stream()
                 .map(ExtractedSkill::getSkillName)
-                .collect(java.util.stream.Collectors.toList());
+                .collect(Collectors.toList());
 
         kafkaTemplate.send("skills.extracted", Map.of(
                 "scholarId", scholarId,
@@ -54,13 +67,39 @@ public class AiReviewService {
         ));
     }
 
-    private String buildPrompt(String resumeText) {
-        return """
-                You are a skill extraction engine. Extract all skills from this resume.
-                Return ONLY a JSON array with objects having fields: skillName, source, level (beginner/intermediate/expert).
-                Sources can be: rotation, academic-project, hackathon, bootcamp, certification, open-source.
-                Resume:
-                """ + resumeText;
+    private String callAi(String prompt) {
+        if (hyperspaceBaseUrl != null && !hyperspaceBaseUrl.isBlank()
+                && hyperspaceApiKey != null && !hyperspaceApiKey.isBlank()) {
+            try {
+                String result = callHyperspace(prompt);
+                log.info("HyperspaceAI call succeeded");
+                return result;
+            } catch (Exception e) {
+                log.warn("HyperspaceAI call failed ({}), falling back to Ollama", e.getMessage());
+            }
+        }
+        return callOllama(prompt);
+    }
+
+    private String callHyperspace(String prompt) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(hyperspaceApiKey);
+
+        Map<String, Object> body = Map.of(
+                "model", hyperspaceModel,
+                "messages", List.of(Map.of("role", "user", "content", prompt)),
+                "max_tokens", 1024
+        );
+
+        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+        Map<?, ?> response = restTemplate.postForObject(
+                hyperspaceBaseUrl + "/chat/completions", entity, Map.class);
+
+        if (response == null) return "[]";
+
+        JsonNode root = objectMapper.valueToTree(response);
+        return root.path("choices").path(0).path("message").path("content").asText("[]");
     }
 
     private String callOllama(String prompt) {
@@ -79,6 +118,16 @@ public class AiReviewService {
         }
     }
 
+    private String buildPrompt(String resumeText) {
+        return """
+                You are a skill extraction engine. Extract all technical skills from this resume.
+                Return ONLY a JSON array. No explanation, no markdown, no code fences.
+                Each object must have: skillName (string), source (one of: rotation, academic-project, hackathon, bootcamp, certification, open-source), level (beginner/intermediate/expert).
+                Example: [{"skillName":"Java","source":"rotation","level":"intermediate"}]
+                Resume:
+                """ + resumeText;
+    }
+
     private List<ExtractedSkill> parseSkills(String scholarId, String jsonResponse) {
         List<ExtractedSkill> skills = new ArrayList<>();
         try {
@@ -89,16 +138,18 @@ public class AiReviewService {
 
             JsonNode array = objectMapper.readTree(cleaned.substring(start, end + 1));
             for (JsonNode node : array) {
+                String skillName = node.path("skillName").asText().trim();
+                if (skillName.isEmpty()) continue;
                 ExtractedSkill skill = new ExtractedSkill();
                 skill.setScholarId(scholarId);
-                skill.setSkillName(node.path("skillName").asText());
-                skill.setSource(node.path("source").asText());
-                skill.setLevel(node.path("level").asText());
+                skill.setSkillName(skillName);
+                skill.setSource(node.path("source").asText("rotation"));
+                skill.setLevel(node.path("level").asText("intermediate"));
                 skill.setExtractedAt(LocalDateTime.now());
                 skills.add(skill);
             }
         } catch (Exception e) {
-            log.error("Failed to parse Ollama response: {}", e.getMessage());
+            log.error("Failed to parse AI response: {}", e.getMessage());
         }
         return skills;
     }

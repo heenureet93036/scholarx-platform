@@ -100,6 +100,9 @@ services:
       DB_PASS: scholar123
       KAFKA_BROKER: kafka:9092
       OLLAMA_URL: http://ollama:11434
+      HYPERSPACE_URL: ${HYPERSPACE_URL:-}
+      HYPERSPACE_API_KEY: ${HYPERSPACE_API_KEY:-}
+      HYPERSPACE_MODEL: ${HYPERSPACE_MODEL:-claude-sonnet-4-6}
     ports:
       - "8082:8082"
     networks:
