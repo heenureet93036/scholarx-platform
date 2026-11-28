@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scholar-service
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: scholar-service
+  template:
+    metadata:
+      labels:
+        app: scholar-service
+    spec:
+      containers:
+        - name: scholar-service
+          image: scholarx/scholar-service:1.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8081
+            - containerPort: 9090
+          envFrom:
+            - configMapRef:
+                name: scholarx-config
+            - secretRef:
+                name: scholarx-secret
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8081
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8081
+            initialDelaySeconds: 60
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scholar-service
+  namespace: default
+spec:
+  selector:
+    app: scholar-service
+  ports:
+    - name: http
+      port: 8081
+      targetPort: 8081
+    - name: grpc
+      port: 9090
+      targetPort: 9090

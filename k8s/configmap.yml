@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: scholarx-config
+  namespace: default
+data:
+  DB_HOST: scholarx-postgres
+  DB_USER: scholar
+  KAFKA_BROKER: scholarx-kafka:9092
+  OLLAMA_URL: http://scholarx-ollama:11434
+  HYPERSPACE_URL: http://host.minikube.internal:6655/litellm/v1
+  HYPERSPACE_MODEL: claude-sonnet-4-6
+  SCHOLAR_SERVICE_HOST: scholar-service
+  MANAGER_EMAIL: manager@scholarx.com
+  MAIL_HOST: smtp.gmail.com

@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ai-review-service
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai-review-service
+  template:
+    metadata:
+      labels:
+        app: ai-review-service
+    spec:
+      containers:
+        - name: ai-review-service
+          image: scholarx/ai-review-service:1.0.0
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - configMapRef:
+                name: scholarx-config
+            - secretRef:
+                name: scholarx-secret
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8082
+            initialDelaySeconds: 60
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ai-review-service
+  namespace: default
+spec:
+  selector:
+    app: ai-review-service
+  ports:
+    - port: 8082
+      targetPort: 8082
