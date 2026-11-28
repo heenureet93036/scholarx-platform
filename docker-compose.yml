@@ -81,6 +81,7 @@ services:
       KAFKA_BROKER: kafka:9092
     ports:
       - "8081:8081"
+      - "9090:9090"
     networks:
       - scholarx-network
 
@@ -118,6 +119,7 @@ services:
       DB_USER: scholar
       DB_PASS: scholar123
       KAFKA_BROKER: kafka:9092
+      SCHOLAR_SERVICE_HOST: scholar-service
     ports:
       - "8083:8083"
     networks:
