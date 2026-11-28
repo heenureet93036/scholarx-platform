@@ -1,8 +1,9 @@
-FROM eclipse-temurin:21-jdk-alpine AS build
+FROM eclipse-temurin:21-jdk AS build
 WORKDIR /build
+RUN apt-get update -q && apt-get install -y -q maven && rm -rf /var/lib/apt/lists/*
 COPY pom.xml .
 COPY src ./src
-RUN ./mvnw package -DskipTests 2>/dev/null || (apk add --no-cache maven && mvn package -DskipTests)
+RUN mvn package -DskipTests --batch-mode -q
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
