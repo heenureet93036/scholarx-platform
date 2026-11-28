@@ -1,12 +1,11 @@
-# eclipse-temurin:21-jre-alpine — JRE-only (not full JDK) on Alpine Linux.
-# JRE is sufficient at runtime since compilation happens via Maven at build time.
-# Alpine base keeps the image small (~180MB vs ~500MB for full JDK images).
-FROM eclipse-temurin:21-jre-alpine AS runtime
+FROM eclipse-temurin:21-jdk-alpine AS build
+WORKDIR /build
+COPY pom.xml .
+COPY src ./src
+RUN ./mvnw package -DskipTests 2>/dev/null || (apk add --no-cache maven && mvn package -DskipTests)
 
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-
-COPY target/ai-review-service-1.0.0.jar app.jar
-
+COPY --from=build /build/target/ai-review-service-1.0.0.jar app.jar
 EXPOSE 8082
-
 ENTRYPOINT ["java", "-jar", "app.jar"]

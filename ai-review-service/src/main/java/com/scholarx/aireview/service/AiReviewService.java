@@ -42,9 +42,14 @@ public class AiReviewService {
         skillRepository.saveAll(skills);
         log.info("Saved {} skills for scholar: {}", skills.size(), scholarId);
 
+        List<String> skillNames = skills.stream()
+                .map(ExtractedSkill::getSkillName)
+                .collect(java.util.stream.Collectors.toList());
+
         kafkaTemplate.send("skills.extracted", Map.of(
                 "scholarId", scholarId,
                 "targetRole", targetRole,
+                "skills", skillNames,
                 "skillCount", skills.size()
         ));
     }
@@ -65,7 +70,7 @@ public class AiReviewService {
                     "prompt", prompt,
                     "stream", false
             );
-            Map response = restTemplate.postForObject(
+            Map<?, ?> response = restTemplate.postForObject(
                     ollamaBaseUrl + "/api/generate", request, Map.class);
             return response != null ? (String) response.get("response") : "[]";
         } catch (Exception e) {
